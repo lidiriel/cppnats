@@ -35,7 +35,8 @@ include_directories(${cnats_SOURCE_DIR}/src src)
 # cppnats library 
 #file(GLOB SOURCES "src/*.cpp")
 #file(GLOB HEADERS "src/*.h")
-add_library(cppnats STATIC 
+add_library(cppnats STATIC
+    src/helper.cpp
     src/cppnats.cpp)
 target_include_directories(cppnats PUBLIC include)
 target_link_libraries(cppnats nats_static)
