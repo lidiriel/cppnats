@@ -2,6 +2,8 @@
 
 A C++20 client library for [NATS](https://nats.io/), built on top of the official [cnats](https://github.com/nats-io/nats.c) C client.
 
+Development in progress...
+
 ## Requirements
 
 - CMake 3.30+
