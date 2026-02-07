@@ -125,9 +125,10 @@ namespace CppNats {
             // - MaxReconnects: Maximum number of reconnection attempts before giving up (default: 60). Set to -1 for infinite attempts.
             void setMaxReconnects(int maxReconnects);
             // - ReconnectBufSize: Size of the buffer used to store messages while reconnecting (default: 8MB). Set to 0 for unlimited buffering.
+            void setReconnectBufSize(int size);
             // - ReconnectJitter: Maximum random delay added to the ReconnectWait time to prevent reconnection storms (default: 1 second).
             // - ReconnectJitterTLS: Maximum random delay added to the ReconnectWait time for TLS connections (default: 1 second).
-            // - ReconnectJitterTLS: Maximum random delay added to the ReconnectWait time
+            void setReconnectJitter(int jitter, int jitterTLS);
 
             // ----------- Authentication Configuration -----------
             // JWT and NKey Authentication
@@ -151,7 +152,26 @@ namespace CppNats {
             //void setReconnectHandler(void (*handler)(natsConnection* nc, void* closure), void* closure);
             //void setErrorHandler(void (*handler)(natsConnection* nc, natsStatus err, const char* errTxt, void* closure), void* closure);
             //void setClosedHandler(void (*handler)(natsConnection* nc, void* closure), void* closure);
-     }; 
+    }; 
+
+    class Message
+    {
+    private:
+        natsMsg* m_msg;
+    public:
+        Message();
+        Message(const std::string& subject, const std::string& data, const std::string& reply = "");
+        ~Message() noexcept;
+
+        natsMsg* getNatsMsg() const { return m_msg; }   
+        void setSubject(const std::string& subject);
+        void setData(const std::string& data);
+        void setReply(const std::string& reply);
+        const std::string subject();
+        const std::string data();
+        const std::string reply();
+    };
+
 
     class Client
     {
@@ -165,6 +185,7 @@ namespace CppNats {
         void connect(const Options& options);
         void connect(const std::string& address);
         void close() noexcept;
+        void publish(const Message& message);
 
     };
     

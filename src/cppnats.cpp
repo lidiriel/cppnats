@@ -98,6 +98,22 @@ namespace CppNats {
         }
     }
 
+    void Options::setReconnectBufSize(int size)
+    {
+        auto err = natsOptions_SetReconnectBufSize(this->natsOpts, size);
+        if (err != NATS_OK) {
+            throw Exception(err);
+        }
+    }
+
+    void Options::setReconnectJitter(int jitter, int jitterTLS)
+    {
+        auto err = natsOptions_SetReconnectJitter(this->natsOpts, jitter, jitterTLS);
+        if (err != NATS_OK) {
+            throw Exception(err);
+        }
+    }
+
     void Options::setNKeyFromSeed(const std::string& nkey, const std::string& userCreds)
     {
         auto err = natsOptions_SetNKeyFromSeed(this->natsOpts, nkey.c_str(), userCreds.c_str());
@@ -140,6 +156,36 @@ namespace CppNats {
     }
     #endif
 
+    Message::Message() : m_msg(nullptr) {}
+
+    Message::Message(const std::string& subject, const std::string& data, const std::string& reply) : m_msg(nullptr)
+    {
+        auto err = natsMsg_Create(&m_msg, subject.c_str(), reply.c_str(), data.c_str(), data.size());
+        if (err != NATS_OK) {
+            throw Exception(err);
+        }
+    }
+
+    Message::~Message() noexcept
+    {
+        natsMsg_Destroy(m_msg);
+    }   
+    
+    const std::string Message::subject()
+    {
+        return std::string(natsMsg_GetSubject(m_msg));
+    }
+
+    const std::string Message::data()
+    {
+        return std::string(natsMsg_GetData(m_msg), natsMsg_GetDataLength(m_msg));
+    }
+
+    const std::string Message::reply()
+    {        
+        return std::string(natsMsg_GetReply(m_msg));
+    }   
+
     Client::Client() : m_conn(nullptr) {}
 
     Client::~Client() noexcept
@@ -171,5 +217,14 @@ namespace CppNats {
             natsConnection_Close(m_conn);
         }
     }
+
+    void Client::publish(const Message& message)
+    {
+        auto err = natsConnection_PublishMsg(m_conn, message.getNatsMsg());
+        if (err != NATS_OK) {
+            throw Exception(err);
+        }
+    }
+
 }
 
