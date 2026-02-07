@@ -117,6 +117,7 @@ namespace CppNats {
         }
     }
 
+    #if defined(CPPNATS_ENABLE_TSL)
     void Options::setSecure(bool secure)
     {
         auto err = natsOptions_SetSecure(this->natsOpts, secure);
@@ -125,7 +126,6 @@ namespace CppNats {
         }
     }
 
-    #if defined(CPPNATS_ENABLE_TSL)
     void Options::loadCertificates(const std::string& certFile, const std::string& keyFile, const std::string& caFile)
     {
         auto err = natsOptions_LoadCertificates(this->natsOpts, certFile.c_str(), keyFile.c_str(), caFile.c_str());

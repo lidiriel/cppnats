@@ -51,12 +51,17 @@ FetchContent_MakeAvailable(doctest)
 # Tests
 add_executable(cppnats_tests
     tests/test_main.cpp
+    tests/test_core.cpp
+    tests/test_jetstream.cpp
 )
 
 target_link_libraries(cppnats_tests
     PRIVATE
         cppnats
         doctest::doctest
+)
+target_compile_definitions(cppnats_tests PRIVATE
+    NATS_SERVER_PATH="${CMAKE_BINARY_DIR}/bin/nats-server"
 )
 # Register tests with CTest
 add_test(NAME cppnats_tests COMMAND cppnats_tests)

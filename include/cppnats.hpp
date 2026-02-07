@@ -21,7 +21,7 @@
 
 namespace CppNats {
 
-    enum class ConnectionStatus : std::uint8_t
+    enum class ConnectionStatus : short
     {
         Disconnected = NATS_CONN_STATUS_DISCONNECTED,
         Connecting = NATS_CONN_STATUS_CONNECTING,
@@ -57,7 +57,7 @@ namespace CppNats {
             Options();
             ~Options();
             
-            enum class IPResolutionOrder : std::uint8_t
+            enum class IPResolutionOrder : short
             {
                 SystemDefault = 0,
                 V4Only = 4,
@@ -101,10 +101,14 @@ namespace CppNats {
             // Token Authentication
             void token(const std::string& token);
             
+            #ifdef CPPNATS_ENABLE_TLS
             // ----------- TLS/SSL Configuration -----------
             // Enable encrypted connections
             void setSecure(bool secure);
-            
+            // Load client certificates and CA for TLS connections
+            void loadCertificates(const std::string& certFile, const std::string& keyFile, const std::string& caFile);
+            #endif
+
             // ----------- Callback and Event Configuration -----------
             // Set callback functions for connection events (e.g., disconnect, reconnect, error)    
             //void setDisconnectHandler(void (*handler)(natsConnection* nc, void* closure), void* closure);
@@ -112,15 +116,6 @@ namespace CppNats {
             //void setErrorHandler(void (*handler)(natsConnection* nc, natsStatus err, const char* errTxt, void* closure), void* closure);
             //void setClosedHandler(void (*handler)(natsConnection* nc, void* closure), void* closure);
      }; 
-
-    #ifdef CPPNATS_ENABLE_TSL
-    class TLSOptions :: public Options
-    {
-        public:
-            // Load client certificates and CA for TLS connections
-            void loadCertificates(const std::string& certFile, const std::string& keyFile, const std::string& caFile);
-    };      
-    #endif
 
     class Client
     {

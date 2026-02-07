@@ -1,15 +1,19 @@
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#define DOCTEST_CONFIG_IMPLEMENT
 #include <doctest/doctest.h>
 
-#include "cppnats.hpp"
+#include "test_helpers.h"
 
-TEST_CASE("connecting to server") {
-    CppNats::Client c;
-    CHECK_NOTHROW(c.connect("nats://localhost:4222"));
-    c.close();
+static std::string g_natsUrl;
+
+std::string natsTestUrl() {
+    return g_natsUrl;
 }
 
-TEST_CASE("connecting to invalid server") {
-    CppNats::Client c;
-    CHECK_THROWS_AS(c.connect("nats://invalid:4222"), CppNats::Exception);
+int main(int argc, char** argv) {
+    NatsServer server(14222);
+    g_natsUrl = server.url();
+
+    doctest::Context ctx;
+    ctx.applyCommandLine(argc, argv);
+    return ctx.run();
 }

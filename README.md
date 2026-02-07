@@ -75,6 +75,46 @@ chmod +x ./build/bin/nats-server
 ./build/bin/nats-server --version
 ```
 
+## Running tests
+
+Tests use [doctest](https://github.com/doctest/doctest) and automatically manage `nats-server` processes — no need to start a server manually.
+
+### Test architecture
+
+| File | Role |
+| --- | --- |
+| `tests/test_helpers.h` | `NatsServer` RAII struct that forks/stops a `nats-server` process |
+| `tests/test_main.cpp` | Custom `main()` — starts a core server on port 14222, then runs doctest |
+| `tests/test_core.cpp` | Test suites: `options`, `connection` |
+| `tests/test_jetstream.cpp` | Test suite: `jetstream` — starts a second server on port 14223 with `-js` |
+
+The `NatsServer` struct forks a `nats-server` child process, waits for it to accept connections, and sends `SIGTERM` on destruction. Two independent servers run during the test session:
+
+- **Port 14222** — core NATS server (started in `main()`, shared by all core tests)
+- **Port 14223** — JetStream-enabled server (lazily started by the `jetstream` test suite fixture)
+
+### Build and run
+
+```bash
+cmake -B build
+cmake --build build --target cppnats_tests
+./build/cppnats_tests
+```
+
+### Run a specific test suite
+
+```bash
+./build/cppnats_tests -ts=options
+./build/cppnats_tests -ts=connection
+./build/cppnats_tests -ts=jetstream
+```
+
+### Run a specific test case
+
+```bash
+./build/cppnats_tests -tc="connecting to server"
+```
+
 ## Running the cnats dependency tests
 
 The cnats library includes its own test suite. To run it, you need the `nats-server` binary available in your `PATH` (see section above).
