@@ -29,6 +29,7 @@ TEST_CASE("setting invalid options") {
     CHECK_THROWS_AS(opts.addServer("invalid_url"), CppNats::Exception);
     CHECK_THROWS_AS(opts.timeout(-1), CppNats::Exception);
     CHECK_THROWS_AS(opts.setReconnectWait(-1), CppNats::Exception);
+    CHECK_THROWS_AS(opts.setIPResolutionOrder(static_cast<CppNats::Options::IPResolutionOrder>(33)), CppNats::Exception);
 }
 
 } // TEST_SUITE("options")

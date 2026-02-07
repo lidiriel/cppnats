@@ -1,6 +1,7 @@
 /**
  * @file cppnats.cpp    
  * This file is part of CppNats, a C++ client for NATS.
+ * 
  * Copyright (C) 2026 Ludovic Leau Mercier
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +16,7 @@
 #include <iostream>
 #include <atomic>
 #include "cppnats.hpp"
+#include "helper.hpp"
 
 
 namespace CppNats {
@@ -31,6 +33,9 @@ namespace CppNats {
 
     void Options::addServer(const std::string& url)
     {
+        if (!Helper::urlIsValid(url)) {
+            throw Exception(NATS_INVALID_ARG);
+        }
         auto err = natsOptions_SetURL(this->natsOpts, url.c_str());
         if (err != NATS_OK) {
             throw Exception(err);

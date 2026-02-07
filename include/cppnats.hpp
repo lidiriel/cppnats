@@ -21,6 +21,42 @@
 
 namespace CppNats {
 
+    enum class Status : short
+    {
+        Ok = NATS_OK,
+        Err = NATS_ERR,
+        ProtocolError = NATS_PROTOCOL_ERROR,
+        IoError = NATS_IO_ERROR,
+        LineTooLong = NATS_LINE_TOO_LONG,
+        ConnectionClosed = NATS_CONNECTION_CLOSED,
+        NoServer = NATS_NO_SERVER,
+        StaleConnection = NATS_STALE_CONNECTION,
+        SecureConnectionWanted = NATS_SECURE_CONNECTION_WANTED,
+        SecureConnectionRequired = NATS_SECURE_CONNECTION_REQUIRED,
+        ConnectionDisconnected = NATS_CONNECTION_DISCONNECTED,
+        ConnectionAuthFailed = NATS_CONNECTION_AUTH_FAILED,
+        NotPermitted = NATS_NOT_PERMITTED,
+        NotFound = NATS_NOT_FOUND,
+        AddressMissing = NATS_ADDRESS_MISSING,
+        InvalidSubject = NATS_INVALID_SUBJECT,
+        InvalidArg = NATS_INVALID_ARG,
+        InvalidSubscription = NATS_INVALID_SUBSCRIPTION,
+        InvalidTimeout = NATS_INVALID_TIMEOUT,
+        IllegalState = NATS_ILLEGAL_STATE,
+        SlowConsumer = NATS_SLOW_CONSUMER,
+        MaxPayload = NATS_MAX_PAYLOAD,
+        MaxDeliveredMsgs = NATS_MAX_DELIVERED_MSGS,
+        InsufficientBuffer = NATS_INSUFFICIENT_BUFFER,
+        NoMemory = NATS_NO_MEMORY,
+        SysError = NATS_SYS_ERROR,
+        Timeout = NATS_TIMEOUT,
+        FailedToInitialize = NATS_FAILED_TO_INITIALIZE,
+        NotInitialized = NATS_NOT_INITIALIZED,
+        SslError = NATS_SSL_ERROR,
+        NoServerSupport = NATS_NO_SERVER_SUPPORT,
+        NotYetConnected = NATS_NOT_YET_CONNECTED
+    };
+
     enum class ConnectionStatus : short
     {
         Disconnected = NATS_CONN_STATUS_DISCONNECTED,
