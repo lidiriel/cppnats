@@ -15,6 +15,7 @@
 #include <cstring>
 #include <iostream>
 #include <atomic>
+#include <vector>
 #include "cppnats.hpp"
 #include "helper.hpp"
 
@@ -40,6 +41,18 @@ namespace CppNats {
         if (err != NATS_OK) {
             throw Exception(err);
         }
+    }
+
+    void Options::addServers(const std::list<std::string>& urls)
+    {
+        std::vector<const char*> urlList;
+        for (const auto& url : urls) {
+            if (!Helper::urlIsValid(url)) {
+                throw Exception(NATS_INVALID_ARG);
+            }
+            urlList.push_back(url.c_str());
+        }
+        natsOptions_SetServers(this->natsOpts, urlList.data(), urls.size());   
     }
 
     void Options::dontRandomize(bool randomize)
@@ -155,6 +168,14 @@ namespace CppNats {
         }
     }
     #endif
+
+    void Options::setDefaultOptions()
+    {
+        auto err = natsOptions_SetDefault(this->natsOpts);
+        if (err != NATS_OK) {
+            throw Exception(err);
+        }
+    }
 
     Message::Message() : m_msg(nullptr) {}
 

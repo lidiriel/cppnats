@@ -1,4 +1,6 @@
 #include <doctest/doctest.h>
+#include <string>
+#include <list>
 
 #include "test_helpers.h"
 
@@ -27,6 +29,16 @@ TEST_CASE("setting options") {
     CHECK_NOTHROW(opts.setSecure(true));
     #endif
 }
+
+TEST_CASE("setting multiple servers") {
+    CppNats::Options opts;
+    std::list<std::string> urls = {
+        "nats://localhost:4222",
+        "nats://127.0.0.1:4222",
+        "nats-tls://my-server.com:4222"
+    };
+    CHECK_NOTHROW(opts.addServers(urls));
+}   
 
 TEST_CASE("setting invalid options") {
     CppNats::Options opts;

@@ -13,12 +13,6 @@
 #include <string>
 #include <list>
 
-/*
-    nc, err := nats.Connect(url, nats.UserCredentials("user.creds"))
-    Client c;
-    c.connect("nats://user:password@localhost:4222", Option.UserCredentials("user.creds"));
-*/
-
 namespace CppNats {
 
     enum class Status : short
@@ -90,6 +84,8 @@ namespace CppNats {
             friend class Client;
 
         public:
+            // options are initialized with default values, so that users can just 
+            // create an Options object and pass it to connect() without setting any option if they don't want to.
             Options();
             ~Options();
             
@@ -105,7 +101,8 @@ namespace CppNats {
             // ----------- Core Connection Configuration ---------------
             // Single URL or server pool for failover
             // default server : nats://localhost:4222
-            void addServer(const std::string& url);
+            void addOneServer(const std::string& url);
+            void addServers(const std::list<std::string>& urls);
             // Disable server randomization
             void dontRandomize(bool randomize);
 
