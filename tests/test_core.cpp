@@ -39,7 +39,7 @@ TEST_CASE("setting multiple servers") {
     };
     CHECK_NOTHROW(opts.addServers(urls));
 }   
-
+    
 TEST_CASE("setting invalid options") {
     CppNats::Options opts;
     CHECK_THROWS_AS(opts.addServer("invalid_url"), CppNats::Exception);
@@ -104,10 +104,39 @@ TEST_SUITE("message") {
 
 TEST_SUITE("publish") {
     TEST_CASE("publishing message") {
-        CppNats::Client c;
-        c.connect(natsTestUrl());
-        CppNats::Message msg("subject", "data", "reply");
-        CHECK_NOTHROW(c.publish(msg));
-        c.close();
+        CppNats::Client cli;
+        cli.connect(natsTestUrl());
+        
+        CHECK_NOTHROW(cli.publish(CppNats::Message("greet.joe","hello")));
+        CppNats::Subscription sub = cli.subscribe("greet.*");
+        CHECK_THROWS_AS(sub.nextMessage(0.1), CppNats::Exception);
+
+        std::list<CppNats::Message> pubs;
+        // create several messages
+        pubs.push_back(CppNats::Message("greet.sam","hello"));
+        pubs.push_back(CppNats::Message("greet.bob","hello"));
+        pubs.push_back(CppNats::Message("greet.eve","hello"));
+        // publish it
+        for(auto msg : pubs){
+            CHECK_NOTHROW(cli.publish(msg));
+        }
+        // check the reception
+        std::list<CppNats::Message> msgs;
+        CHECK_NOTHROW(msgs.push_back(sub.nextMessage(0.1)));
+        CHECK_NOTHROW(msgs.push_back(sub.nextMessage(0.1)));
+        CHECK_NOTHROW(msgs.push_back(sub.nextMessage(0.1)));
+        msgs.sort([](const CppNats::Message &a, const CppNats::Message &b){ return a.subject() > b.subject();});
+        pubs.sort([](const CppNats::Message &a, const CppNats::Message &b){ return a.subject() > b.subject();});
+        CHECK(pubs == msgs);
+
+        cli.close();
     }
 }   // TEST_SUITE("publish")
+
+TEST_SUITE("request") {
+    TEST_CASE("request message") {
+        CppNats::Client c;
+        c.connect(natsTestUrl());
+
+    }
+}

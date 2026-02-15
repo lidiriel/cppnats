@@ -12,6 +12,8 @@
 #include <nats.h>
 #include <string>
 #include <list>
+#include <future>
+#include <queue>
 
 namespace CppNats {
 
@@ -88,7 +90,7 @@ namespace CppNats {
             // create an Options object and pass it to connect() without setting any option if they don't want to.
             Options();
             ~Options();
-            
+
             enum class IPResolutionOrder : short
             {
                 SystemDefault = 0,
@@ -101,7 +103,7 @@ namespace CppNats {
             // ----------- Core Connection Configuration ---------------
             // Single URL or server pool for failover
             // default server : nats://localhost:4222
-            void addOneServer(const std::string& url);
+            void addServer(const std::string& url);
             void addServers(const std::list<std::string>& urls);
             // Disable server randomization
             void dontRandomize(bool randomize);
@@ -155,6 +157,7 @@ namespace CppNats {
     {
     private:
         natsMsg* m_msg;
+        void setMsg(natsMsg* msg) { m_msg = msg; }
     public:
         Message();
         Message(const std::string& subject, const std::string& data, const std::string& reply = "");
@@ -164,11 +167,28 @@ namespace CppNats {
         void setSubject(const std::string& subject);
         void setData(const std::string& data);
         void setReply(const std::string& reply);
-        const std::string subject();
-        const std::string data();
-        const std::string reply();
+        const std::string subject() const;
+        const std::string data() const;
+        const std::string reply() const;
+        
+        bool operator==(const Message &other) const;
+
+        friend class Client;
     };
 
+    typedef std::queue<Message> QMessages; 
+
+    class Subscription
+    {
+    private:
+        natsSubscription* m_sub;
+        QMessages m_queue;
+        
+    public:
+        const Message nextMessage(const int timeout=1000);
+
+        friend class Client;
+    };
 
     class Client
     {
@@ -183,6 +203,15 @@ namespace CppNats {
         void connect(const std::string& address);
         void close() noexcept;
         void publish(const Message& message);
+        //void publish(const std::string& subject, std::byte message);
+        Subscription subscribe(const std::string& subject, const int timeout=1000);
+
+        // A request that expects a reply.
+        Message request(const Message& message, int timeout);
+        
+        // An asynchronous request that expects a reply. 
+        // The returned future will be fulfilled when the reply is received or when the timeout expires.
+        std::future<Message> requestAsync(const Message& message, int timeout);
 
     };
     

@@ -24,6 +24,21 @@ namespace CppNats {
 
     Options::Options()
     {
+        // initialize with default options
+        // opts->allowReconnect        = true;
+        // opts->secure                = false;
+        // opts->maxReconnect          = NATS_OPTS_DEFAULT_MAX_RECONNECT;
+        // opts->reconnectWait         = NATS_OPTS_DEFAULT_RECONNECT_WAIT;
+        // opts->pingInterval          = NATS_OPTS_DEFAULT_PING_INTERVAL;
+        // opts->maxPingsOut           = NATS_OPTS_DEFAULT_MAX_PING_OUT;
+        // opts->ioBufSize             = NATS_OPTS_DEFAULT_IO_BUF_SIZE;
+        // opts->maxPendingMsgs        = NATS_OPTS_DEFAULT_MAX_PENDING_MSGS;
+        // opts->maxPendingBytes       = -1;
+        // opts->timeout               = NATS_OPTS_DEFAULT_TIMEOUT;
+        // opts->reconnectBufSize      = NATS_OPTS_DEFAULT_RECONNECT_BUF_SIZE;
+        // opts->reconnectJitter       = NATS_OPTS_DEFAULT_RECONNECT_JITTER;
+        // opts->reconnectJitterTLS    = NATS_OPTS_DEFAULT_RECONNECT_JITTER_TLS;
+        // opts->asyncErrCb            = natsConn_defaultErrHandler;
         natsOptions_Create(&this->natsOpts);
     }
 
@@ -169,14 +184,6 @@ namespace CppNats {
     }
     #endif
 
-    void Options::setDefaultOptions()
-    {
-        auto err = natsOptions_SetDefault(this->natsOpts);
-        if (err != NATS_OK) {
-            throw Exception(err);
-        }
-    }
-
     Message::Message() : m_msg(nullptr) {}
 
     Message::Message(const std::string& subject, const std::string& data, const std::string& reply) : m_msg(nullptr)
@@ -192,20 +199,28 @@ namespace CppNats {
         natsMsg_Destroy(m_msg);
     }   
     
-    const std::string Message::subject()
+    const std::string Message::subject() const
     {
         return std::string(natsMsg_GetSubject(m_msg));
     }
 
-    const std::string Message::data()
+    const std::string Message::data() const
     {
         return std::string(natsMsg_GetData(m_msg), natsMsg_GetDataLength(m_msg));
     }
 
-    const std::string Message::reply()
+    const std::string Message::reply() const
     {        
         return std::string(natsMsg_GetReply(m_msg));
     }   
+
+    bool Message::operator==(const Message &other) const
+    {
+        return subject() == other.subject()
+            && data() == other.data()
+            && reply() == other.reply();
+    }
+
 
     Client::Client() : m_conn(nullptr) {}
 
@@ -247,5 +262,77 @@ namespace CppNats {
         }
     }
 
-}
+    Subscription Client::subscribe(const std::string& subject, const int timeout)
+    {
+        Subscription sub;
+        auto callback = [](natsConnection* nc, natsSubscription* sub, natsMsg* msg, void* closure) {
+            CppNats::QMessages* q = static_cast<CppNats::QMessages*>(closure);
+            if (msg) {
+                Message reply;
+                reply.setMsg(msg);
+                q->push(reply);
+            } else {
+                //p->set_exception(std::make_exception_ptr(Exception(NATS_TIMEOUT)));
+            }
+            // todo create a thread ? to push in queue
+
+        };
+
+        auto err = natsConnection_SubscribeTimeout(&sub.m_sub, m_conn, subject.data(), timeout, callback, &sub.m_queue);
+        if (err != NATS_OK) {
+            throw Exception(err);
+        }
+        return sub;
+    }
+    
+    const Message Subscription::nextMessage(const int timeout)
+    {
+        // if queue empty launch wait timeout
+        // sinon get value
+        // futur.get()
+        if(m_queue.empty()){
+            // launch timeout
+        }
+        
+        return Message();
+    }
+
+    Message Client::request(const Message& message, int timeout)
+    {
+        natsMsg* replyMsg = nullptr;
+        auto err = natsConnection_RequestMsg(&replyMsg, m_conn, message.getNatsMsg(), timeout);
+        if (err != NATS_OK) {
+            throw Exception(err);
+        }
+        Message reply;
+        reply.setMsg(replyMsg); 
+        return reply;
+    }
+
+   /*  std::future<Message> Client::requestAsync(const Message& message, int timeout)
+    {
+        std::promise<Message> promise;
+        auto future = promise.get_future();
+
+        auto callback = [](natsConnection* nc, natsSubscription* sub, natsMsg* msg, void* closure) {
+            std::promise<Message>* p = static_cast<std::promise<Message>*>(closure);
+            if (msg) {
+                Message reply;
+                reply.setMsg(msg);
+                p->set_value(reply);
+            } else {
+                p->set_exception(std::make_exception_ptr(Exception(NATS_ERR)));
+            }
+        };
+
+        auto err = natsConnection_RequestMsg(m_conn, callback, &promise, message.getNatsMsg(), timeout);
+        if (err != NATS_OK) {
+            throw Exception(err);
+        }
+
+        return future;
+    }   */ 
+
+
+} // namespace CppNats
 
